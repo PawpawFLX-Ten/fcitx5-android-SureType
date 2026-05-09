@@ -147,6 +147,7 @@ abstract class BaseKeyboard(
     private fun createKeyView(def: KeyDef): KeyView {
         return when (def.appearance) {
             is KeyDef.Appearance.AltText -> AltTextKeyView(context, theme, def.appearance)
+            is KeyDef.Appearance.HorizontalSuretype -> HorizontalSuretypeKeyView(context, theme, def.appearance)
             is KeyDef.Appearance.ImageText -> ImageTextKeyView(context, theme, def.appearance)
             is KeyDef.Appearance.Text -> TextKeyView(context, theme, def.appearance)
             is KeyDef.Appearance.Image -> ImageKeyView(context, theme, def.appearance)
@@ -244,12 +245,29 @@ abstract class BaseKeyboard(
                             } || oldOnGestureListener.onGesture(view, event)
                         }
                     }
+                    is KeyDef.Behavior.SwipeLeft,
+                    is KeyDef.Behavior.SwipeRight,
+                    is KeyDef.Behavior.SwipeUp,
+                    is KeyDef.Behavior.SwipeDown -> {
+                        // Handled collectively below — skip per-behavior processing
+                    }
                     is KeyDef.Behavior.DoubleTap -> {
                         doubleTapEnabled = true
                         onDoubleTapListener = { _ ->
                             onAction(it.action)
                         }
                     }
+                }
+            }
+            // Collect directional behaviors (handled below, after popups)
+            val dirActions = mutableMapOf<String, KeyAction>()
+            for (bh in def.behaviors) {
+                when (bh) {
+                    is KeyDef.Behavior.SwipeLeft -> dirActions["left"] = bh.action
+                    is KeyDef.Behavior.SwipeRight -> dirActions["right"] = bh.action
+                    is KeyDef.Behavior.SwipeUp -> dirActions["up"] = bh.action
+                    is KeyDef.Behavior.SwipeDown -> dirActions["down"] = bh.action
+                    else -> {}
                 }
             }
             def.popup?.forEach {
@@ -324,6 +342,35 @@ abstract class BaseKeyboard(
                             oldOnGestureListener.onGesture(view, event)
                         }
                     }
+                    is KeyDef.Popup.DirectionalPreview -> {
+                        val oldOnGestureListener = onGestureListener ?: OnGestureListener.Empty
+                        onGestureListener = OnGestureListener { view, event ->
+                            view as KeyView
+                            if (popupOnKeyPress) {
+                                when (event.type) {
+                                    GestureType.Down -> onPopupAction(
+                                        PopupAction.PreviewAction(view.id, it.content, view.bounds)
+                                    )
+                                    GestureType.Move -> {
+                                        val absX = event.totalX.absoluteValue
+                                        val absY = event.totalY.absoluteValue
+                                        val text = when {
+                                            absX >= absY && event.totalX < 0 -> it.leftHint
+                                            absX >= absY && event.totalX > 0 -> it.rightHint
+                                            absY > absX && event.totalY < 0 -> (it.upHint ?: it.content)
+                                            absY > absX && event.totalY > 0 -> (it.downHint ?: it.content)
+                                            else -> it.content
+                                        }
+                                        onPopupAction(PopupAction.PreviewUpdateAction(view.id, text))
+                                    }
+                                    GestureType.Up -> {
+                                        onPopupAction(PopupAction.DismissAction(view.id))
+                                    }
+                                }
+                            }
+                            oldOnGestureListener.onGesture(view, event)
+                        }
+                    }
                     is KeyDef.Popup.Preview -> {
                         val oldOnGestureListener = onGestureListener ?: OnGestureListener.Empty
                         onGestureListener = OnGestureListener { view, event ->
@@ -342,6 +389,47 @@ abstract class BaseKeyboard(
                             // never consume gesture in preview popup
                             oldOnGestureListener.onGesture(view, event)
                         }
+                    }
+                }
+            }
+            // Directional swipe: outermost wrapper gets first chance at gesture events
+            if (dirActions.isNotEmpty()) {
+                swipeEnabled = true
+                swipeThresholdX = dp(20f)
+                swipeThresholdY = dp(28f)
+                val oldOnGestureListener = onGestureListener ?: OnGestureListener.Empty
+                onGestureListener = OnGestureListener { view, event ->
+                    when (event.type) {
+                        GestureType.Up -> {
+                            if (event.consumed) {
+                                oldOnGestureListener.onGesture(view, event)
+                            } else {
+                                val absX = event.totalX.absoluteValue
+                                val absY = event.totalY.absoluteValue
+                                val hasMovement = absX > 0 || absY > 0
+                                if (!hasMovement) {
+                                    oldOnGestureListener.onGesture(view, event)
+                                } else {
+                                    val dir = when {
+                                        absX >= absY && event.totalX < 0 -> "left"
+                                        absX >= absY && event.totalX > 0 -> "right"
+                                        absY > absX && event.totalY < 0 -> "up"
+                                        absY > absX && event.totalY > 0 -> "down"
+                                        else -> null
+                                    }
+                                    val action = if (dir != null) dirActions[dir] else null
+                                    if (action != null) {
+                                        onAction(action)
+                                        // Let popup handlers process too (dismiss preview etc.)
+                                        oldOnGestureListener.onGesture(view, event)
+                                        true
+                                    } else {
+                                        oldOnGestureListener.onGesture(view, event)
+                                    }
+                                }
+                            }
+                        }
+                        else -> oldOnGestureListener.onGesture(view, event)
                     }
                 }
             }

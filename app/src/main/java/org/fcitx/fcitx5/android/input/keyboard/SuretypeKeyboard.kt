@@ -1,13 +1,13 @@
 /*
  * SPDX-License-Identifier: LGPL-2.1-or-later
  * SPDX-FileCopyrightText: Copyright 2021-2023 Fcitx5 for Android Contributors
+ * Suretype layout additions (c) 2025 WhiteFrost
  */
 package org.fcitx.fcitx5.android.input.keyboard
 
 import android.annotation.SuppressLint
 import android.content.Context
 import android.view.View
-import androidx.annotation.Keep
 import androidx.core.view.allViews
 import org.fcitx.fcitx5.android.R
 import org.fcitx.fcitx5.android.core.InputMethodEntry
@@ -19,8 +19,26 @@ import org.fcitx.fcitx5.android.data.theme.Theme
 import org.fcitx.fcitx5.android.input.popup.PopupAction
 import splitties.views.imageResource
 
+/**
+ * Suretype 20-key compact keyboard layout.
+ *
+ * Each alphabet key shows two letters stacked vertically:
+ *   - **Tap** sends the primary (top) letter.
+ *   - **Swipe** sends the secondary (bottom) letter.
+ *
+ * Designed for predictive text input with Chinese (Pinyin) and English.
+ * The reduced key count enables larger keys for single-thumb typing.
+ *
+ * Layout (5 columns × 4 rows):
+ * ```
+ *  QW   ER   TY   UI   OP
+ *  AS   DF   GH   JK   L
+ *  ⇧    ZX   CV   BN   M    ⌫
+ *  ?123  ,   🌐   [  space  ]  .   ↵
+ * ```
+ */
 @SuppressLint("ViewConstructor")
-class TextKeyboard(
+class SuretypeKeyboard(
     context: Context,
     theme: Theme
 ) : BaseKeyboard(context, theme, Layout) {
@@ -28,43 +46,41 @@ class TextKeyboard(
     enum class CapsState { None, Once, Lock }
 
     companion object {
-        const val Name = "Text"
+        const val Name = "Suretype"
 
         val Layout: List<List<KeyDef>> = listOf(
+            // Row 1: QW ER TY UI OP  (swipe up → 1-5, swipe down → shifted)
             listOf(
-                AlphabetKey("Q", "1"),
-                AlphabetKey("W", "2"),
-                AlphabetKey("E", "3"),
-                AlphabetKey("R", "4"),
-                AlphabetKey("T", "5"),
-                AlphabetKey("Y", "6"),
-                AlphabetKey("U", "7"),
-                AlphabetKey("I", "8"),
-                AlphabetKey("O", "9"),
-                AlphabetKey("P", "0")
+                SuretypeKey("Q", "W", swipeUp = "1", swipeDown = "!"),
+                SuretypeKey("E", "R", swipeUp = "2", swipeDown = "@"),
+                SuretypeKey("T", "Y", swipeUp = "3", swipeDown = "#"),
+                SuretypeKey("U", "I", swipeUp = "4", swipeDown = "$"),
+                SuretypeKey("O", "P", swipeUp = "5", swipeDown = "%")
             ),
+            // Row 2: AS DF GH JK L  (swipe up → 6-0, swipe down → shifted)
             listOf(
-                AlphabetKey("A", "@"),
-                AlphabetKey("S", "*"),
-                AlphabetKey("D", "+"),
-                AlphabetKey("F", "-"),
-                AlphabetKey("G", "="),
-                AlphabetKey("H", "/"),
-                AlphabetKey("J", "#"),
-                AlphabetKey("K", "("),
-                AlphabetKey("L", ")")
+                SuretypeKey("A", "S", swipeUp = "6", swipeDown = "^"),
+                SuretypeKey("D", "F", swipeUp = "7", swipeDown = "&"),
+                SuretypeKey("G", "H", swipeUp = "8", swipeDown = "*"),
+                SuretypeKey("J", "K", swipeUp = "9", swipeDown = "("),
+                SuretypeKey("L", "L", swipeUp = "0", swipeDown = ")", popup = arrayOf(
+                    KeyDef.Popup.Preview("L"),
+                    KeyDef.Popup.Keyboard("L")
+                ))
             ),
+            // Row 3: ⇧ ZX CV BN M ⌫  (swipe up/down → math/logic operators)
             listOf(
                 CapsKey(),
-                AlphabetKey("Z", "'"),
-                AlphabetKey("X", ":"),
-                AlphabetKey("C", "\""),
-                AlphabetKey("V", "?"),
-                AlphabetKey("B", "!"),
-                AlphabetKey("N", "~"),
-                AlphabetKey("M", "\\"),
+                SuretypeKey("Z", "X", percentWidth = 0.175f, swipeUp = "+", swipeDown = "~"),
+                SuretypeKey("C", "V", percentWidth = 0.175f, swipeUp = "-", swipeDown = "`"),
+                SuretypeKey("B", "N", percentWidth = 0.175f, swipeUp = "=", swipeDown = "|"),
+                SuretypeKey("M", "M", percentWidth = 0.175f, swipeUp = "/", swipeDown = "\\", popup = arrayOf(
+                    KeyDef.Popup.Preview("M"),
+                    KeyDef.Popup.Keyboard("M")
+                )),
                 BackspaceKey()
             ),
+            // Row 4: ?123(long=toggle) , 🌐 space . ↵
             listOf(
                 // Tap → NumberKeyboard, Long-press → toggle Suretype ↔ Text
                 object : KeyDef(
@@ -86,14 +102,13 @@ class TextKeyboard(
 
     val caps: ImageKeyView by lazy { findViewById(R.id.button_caps) }
     val backspace: ImageKeyView by lazy { findViewById(R.id.button_backspace) }
-    val quickphrase: ImageKeyView by lazy { findViewById(R.id.button_quickphrase) }
     val lang: ImageKeyView by lazy { findViewById(R.id.button_lang) }
     val space: TextKeyView by lazy { findViewById(R.id.button_space) }
     val `return`: ImageKeyView by lazy { findViewById(R.id.button_return) }
 
     private val showLangSwitchKey = AppPrefs.getInstance().keyboard.showLangSwitchKey
 
-    @Keep
+    @androidx.annotation.Keep
     private val showLangSwitchKeyListener = ManagedPreference.OnChangeListener<Boolean> { _, v ->
         updateLangSwitchKey(v)
     }
@@ -111,6 +126,18 @@ class TextKeyboard(
 
     private var capsState: CapsState = CapsState.None
 
+    // For keys where the secondary letter is more common in Chinese pinyin,
+    // tap sends the secondary instead of the primary.
+    // Primary → Secondary mapping (only keys that need swapping):
+    private val pinyinPreferredKey: Map<String, String> = mapOf(
+        "Q" to "W",  // W is far more common in pinyin initials
+        "T" to "Y",  // Y is the most frequent pinyin initial
+        "U" to "I",  // I appears in more syllables
+        "G" to "H",  // H appears in zh/ch/sh + standalone
+        "Z" to "X",  // X is a top-3 pinyin initial
+        "B" to "N",  // N is very common in finals (an/en/in/un/ang/eng/ing)
+    )
+
     private fun transformAlphabet(c: String): String {
         return when (capsState) {
             CapsState.None -> c.lowercase()
@@ -124,22 +151,46 @@ class TextKeyboard(
     override fun onAction(action: KeyAction, source: KeyActionListener.Source) {
         var transformed = action
         when (action) {
-            is KeyAction.FcitxKeyAction -> when (source) {
+            is KeyAction.DirectKeyAction -> when (source) {
                 KeyActionListener.Source.Keyboard -> {
-                    when (capsState) {
-                        CapsState.None -> {
-                            transformed = action.copy(act = action.act.lowercase())
-                        }
+                    transformed = when (capsState) {
+                        CapsState.None -> KeyAction.FcitxKeyAction(action.act.lowercase())
                         CapsState.Once -> {
-                            transformed = action.copy(
+                            switchCapsState()
+                            KeyAction.FcitxKeyAction(
                                 act = action.act.uppercase(),
                                 states = KeyStates(KeyState.Virtual, KeyState.Shift)
                             )
-                            switchCapsState()
                         }
-                        CapsState.Lock -> {
-                            transformed = action.copy(
-                                act = action.act.uppercase(),
+                        CapsState.Lock -> KeyAction.FcitxKeyAction(
+                            act = action.act.uppercase(),
+                            states = KeyStates(KeyState.Virtual, KeyState.CapsLock)
+                        )
+                    }
+                }
+                else -> {}
+            }
+            is KeyAction.FcitxKeyAction -> when (source) {
+                KeyActionListener.Source.Keyboard -> {
+                    val act = action.act
+                    // For dual-letter keys, send the pinyin-better letter on tap
+                    pinyinPreferredKey[act]?.let { better ->
+                        transformed = action.copy(act = better)
+                    }
+
+                    // Apply caps state to the action
+                    if (transformed is KeyAction.FcitxKeyAction) {
+                        transformed = when (capsState) {
+                            CapsState.None -> transformed.copy(act = transformed.act.lowercase())
+                            CapsState.Once -> {
+                                switchCapsState()
+                                transformed.copy(
+                                    act = transformed.act.uppercase(),
+                                    states = KeyStates(KeyState.Virtual, KeyState.Shift)
+                                )
+                            }
+                            CapsState.Lock -> transformed.copy(
+                                act = transformed.act.uppercase(),
                                 states = KeyStates(KeyState.Virtual, KeyState.CapsLock)
                             )
                         }
@@ -152,6 +203,8 @@ class TextKeyboard(
                 }
             }
             is KeyAction.CapsAction -> switchCapsState(action.lock)
+            is KeyAction.LayoutSwitchAction -> {
+            }
             else -> {}
         }
         super.onAction(transformed, source)

@@ -17,6 +17,16 @@ sealed class KeyAction {
         val states: KeyStates = KeyStates.Virtual
     ) : KeyAction()
 
+    /**
+     * Like [FcitxKeyAction] but bypasses keyboard-level processing (e.g., T9 buffer).
+     * Used for directional swipe gestures where the user makes an explicit choice.
+     */
+    data class DirectKeyAction(
+        val act: String,
+        val code: Int = ScancodeMapping.charToScancode(act[0]),
+        val states: KeyStates = KeyStates.Virtual
+    ) : KeyAction()
+
     data class SymAction(val sym: KeySym, val states: KeyStates = KeyStates.Virtual) : KeyAction()
 
     data class CommitAction(val text: String) : KeyAction()

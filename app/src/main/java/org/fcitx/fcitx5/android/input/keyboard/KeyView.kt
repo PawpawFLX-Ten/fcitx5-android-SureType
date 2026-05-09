@@ -376,6 +376,84 @@ class AltTextKeyView(ctx: Context, theme: Theme, def: KeyDef.Appearance.AltText)
 }
 
 @SuppressLint("ViewConstructor")
+class HorizontalSuretypeKeyView(ctx: Context, theme: Theme, def: KeyDef.Appearance.HorizontalSuretype) :
+    KeyView(ctx, theme, def) {
+
+    val primaryText = view(::AutoScaleTextView) {
+        isClickable = false
+        isFocusable = false
+        background = null
+        text = def.displayText
+        setTextSize(TypedValue.COMPLEX_UNIT_DIP, def.textSize)
+        textDirection = View.TEXT_DIRECTION_FIRST_STRONG_LTR
+        setTextColor(theme.keyTextColor)
+    }
+
+    private val secondaryText = view(::AutoScaleTextView) {
+        isClickable = false
+        isFocusable = false
+        background = null
+        text = def.secondary
+        setTextSize(TypedValue.COMPLEX_UNIT_DIP, def.textSize)
+        textDirection = View.TEXT_DIRECTION_FIRST_STRONG_LTR
+        setTextColor(theme.keyTextColor)
+    }
+
+    private val swipeUpHintText = view(::AutoScaleTextView) {
+        isClickable = false
+        isFocusable = false
+        background = null
+        visibility = if (def.swipeUpHint != null) View.VISIBLE else View.GONE
+        text = def.swipeUpHint ?: ""
+        setTextSize(TypedValue.COMPLEX_UNIT_DIP, 10f)
+        textDirection = View.TEXT_DIRECTION_FIRST_STRONG_LTR
+        setTextColor(theme.altKeyTextColor)
+        alpha = 0.55f
+    }
+
+    private val swipeDownHintText = view(::AutoScaleTextView) {
+        isClickable = false
+        isFocusable = false
+        background = null
+        visibility = if (def.swipeDownHint != null) View.VISIBLE else View.GONE
+        text = def.swipeDownHint ?: ""
+        setTextSize(TypedValue.COMPLEX_UNIT_DIP, 10f)
+        textDirection = View.TEXT_DIRECTION_FIRST_STRONG_LTR
+        setTextColor(theme.altKeyTextColor)
+        alpha = 0.55f
+    }
+
+    init {
+        appearanceView.apply {
+            add(primaryText, lParams(wrapContent, wrapContent) {
+                topToTop = parentId
+                bottomToBottom = parentId
+                leftToLeft = parentId
+                leftMargin = dp(10)
+            })
+            add(secondaryText, lParams(wrapContent, wrapContent) {
+                topToTop = parentId
+                bottomToBottom = parentId
+                rightToRight = parentId
+                rightMargin = dp(10)
+            })
+            add(swipeUpHintText, lParams(wrapContent, wrapContent) {
+                topToTop = parentId
+                topMargin = dp(2)
+                centerHorizontally()
+            })
+            add(swipeDownHintText, lParams(wrapContent, wrapContent) {
+                bottomToBottom = parentId
+                bottomMargin = dp(2)
+                centerHorizontally()
+            })
+        }
+        // Hide secondary if same letter as primary (e.g. "L" key)
+        secondaryText.visibility = if (def.displayText == def.secondary) View.GONE else View.VISIBLE
+    }
+}
+
+@SuppressLint("ViewConstructor")
 class ImageKeyView(ctx: Context, theme: Theme, def: KeyDef.Appearance.Image) :
     KeyView(ctx, theme, def) {
     val img = imageView { configure(theme, def.src, def.variant) }

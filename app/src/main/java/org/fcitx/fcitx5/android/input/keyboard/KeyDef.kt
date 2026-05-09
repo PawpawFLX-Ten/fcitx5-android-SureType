@@ -88,6 +88,24 @@ open class KeyDef(
             margin: Boolean = true,
             viewId: Int = -1
         ) : Text(displayText, textSize, textStyle, percentWidth, variant, border, margin, viewId)
+
+        /**
+         * Phase 2b: Horizontal dual-letter key with swipe hints.
+         * Renders primary letter on the left, secondary on the right,
+         * and optional swipe-up/down hint characters at top/bottom in smaller, dimmer text.
+         */
+        class HorizontalSuretype(
+            displayText: String,
+            val secondary: String,
+            val swipeUpHint: String? = null,
+            val swipeDownHint: String? = null,
+            textSize: Float,
+            percentWidth: Float = 0.2f,
+            variant: Variant = Variant.Normal,
+            border: Border = Border.Default,
+            margin: Boolean = true,
+            viewId: Int = -1,
+        ) : Text(displayText, textSize, Typeface.NORMAL, percentWidth, variant, border, margin, viewId)
     }
 
     sealed class Behavior {
@@ -110,12 +128,30 @@ open class KeyDef(
         class DoubleTap(
             val action: KeyAction
         ) : Behavior()
+
+        // Directional swipe variants for Phase 2b
+        class SwipeLeft(val action: KeyAction) : Behavior()
+        class SwipeRight(val action: KeyAction) : Behavior()
+        class SwipeUp(val action: KeyAction) : Behavior()
+        class SwipeDown(val action: KeyAction) : Behavior()
     }
 
     sealed class Popup {
         open class Preview(val content: String) : Popup()
 
         class AltPreview(content: String, val alternative: String) : Preview(content)
+
+        /**
+         * Phase 2b: Directional swipe preview with hints for all 4 directions.
+         * Shows the appropriate character in the popup based on the user's swipe direction.
+         */
+        class DirectionalPreview(
+            content: String,
+            val leftHint: String,
+            val rightHint: String,
+            val upHint: String? = null,
+            val downHint: String? = null
+        ) : Preview(content)
 
         class Keyboard(val label: String) : Popup()
 

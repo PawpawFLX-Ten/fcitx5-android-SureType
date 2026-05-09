@@ -329,3 +329,42 @@ class NumPadKey(
         Behavior.Press(KeyAction.SymAction(KeySym(sym), NumLockState))
     )
 )
+
+/**
+ * Suretype dual-letter key — shows two letters stacked, tap for primary, swipe for secondary.
+ * Used in SuretypeKeyboard for compact 20-key predictive layout.
+ *
+ * Phase 2b: directional swipe gestures replace the old direction-agnostic swipe.
+ * Swipe left → primary, swipe right → secondary, swipe up/down → optional symbols.
+ * Tap triggers Phase 2a T9 disambiguation via [KeyAction.FcitxKeyAction].
+ */
+class SuretypeKey(
+    val primary: String,
+    val secondary: String,
+    percentWidth: Float = 0.2f,
+    variant: Variant = Variant.Normal,
+    val swipeUp: String? = null,
+    val swipeDown: String? = null,
+    popup: Array<Popup>? = null
+) : KeyDef(
+    Appearance.HorizontalSuretype(
+        displayText = primary,
+        secondary = secondary,
+        swipeUpHint = swipeUp,
+        swipeDownHint = swipeDown,
+        textSize = 22f,
+        percentWidth = percentWidth,
+        variant = variant
+    ),
+    buildSet {
+        add(Behavior.Press(KeyAction.FcitxKeyAction(primary)))
+        add(Behavior.SwipeLeft(KeyAction.DirectKeyAction(primary)))
+        add(Behavior.SwipeRight(KeyAction.DirectKeyAction(secondary)))
+        if (swipeUp != null) add(Behavior.SwipeUp(KeyAction.DirectKeyAction(swipeUp)))
+        if (swipeDown != null) add(Behavior.SwipeDown(KeyAction.DirectKeyAction(swipeDown)))
+    },
+    popup ?: arrayOf(
+        Popup.DirectionalPreview(primary, primary, secondary, swipeUp, swipeDown),
+        Popup.Keyboard(primary)
+    )
+)

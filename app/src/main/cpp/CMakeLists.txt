@@ -77,6 +77,14 @@ add_custom_target(copy-fcitx5-modules
         $<TARGET_PROPERTY:fcitx5-chinese-addons::fullwidth,IMPORTED_LOCATION>
         $<TARGET_PROPERTY:fcitx5-chinese-addons::pinyinhelper,IMPORTED_LOCATION>
         $<TARGET_PROPERTY:fcitx5-chinese-addons::punctuation,IMPORTED_LOCATION>
+        # Core Fcitx5 libraries (not auto-packaged by Prefab in AGP 9.x)
+        $<TARGET_PROPERTY:Fcitx5::Core,IMPORTED_LOCATION>
+        $<TARGET_PROPERTY:Fcitx5::Config,IMPORTED_LOCATION>
+        $<TARGET_PROPERTY:Fcitx5::Utils,IMPORTED_LOCATION>
+        # Core libIME libraries (not auto-packaged by Prefab in AGP 9.x)
+        $<TARGET_PROPERTY:LibIME::Core,IMPORTED_LOCATION>
+        $<TARGET_PROPERTY:LibIME::Pinyin,IMPORTED_LOCATION>
+        $<TARGET_PROPERTY:LibIME::Table,IMPORTED_LOCATION>
         ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}
         COMMENT "Copying fcitx5 module libraries to :app"
         )

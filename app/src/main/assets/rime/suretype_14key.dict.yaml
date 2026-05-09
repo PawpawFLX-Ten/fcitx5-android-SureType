@@ -1,0 +1,5 @@
+# Rime dictionary for Suretype 14-key
+# References the built-in luna_pinyin dictionary.
+# encoding: utf-8
+
+__include: luna_pinyin.dict.yaml:/

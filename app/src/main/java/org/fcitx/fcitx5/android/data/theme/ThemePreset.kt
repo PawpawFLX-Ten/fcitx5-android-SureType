@@ -304,4 +304,120 @@ object ThemePreset {
         genericActiveForegroundColor = 0xffffffff
     )
 
+    /**
+     * CHERRY 8.0 Pure White — clean white mechanical keyboard aesthetic
+     */
+    val CherryPureWhite = Theme.Builtin(
+        name = "CHERRY 纯白",
+        isDark = false,
+        backgroundColor = 0xffF0F0F0,
+        barColor = 0xffE8E8E8,
+        keyboardColor = 0xffF5F5F5,
+        keyBackgroundColor = 0xffFFFFFF,
+        keyTextColor = 0xff2D2D2D,
+        candidateTextColor = 0xff2D2D2D,
+        candidateLabelColor = 0xff2D2D2D,
+        candidateCommentColor = 0xff757575,
+        altKeyBackgroundColor = 0xffE0E0E0,
+        altKeyTextColor = 0xff757575,
+        accentKeyBackgroundColor = 0xffDA291C,
+        accentKeyTextColor = 0xffFFFFFF,
+        keyPressHighlightColor = 0x1f000000,
+        keyShadowColor = 0xffD0D0D0,
+        popupBackgroundColor = 0xffE8E8E8,
+        popupTextColor = 0xff2D2D2D,
+        spaceBarColor = 0xffE8E8E8,
+        dividerColor = 0x1f000000,
+        clipboardEntryColor = 0xffFFFFFF,
+        genericActiveBackgroundColor = 0xffDA291C,
+        genericActiveForegroundColor = 0xffFFFFFF
+    )
+
+    /**
+     * CHERRY 8.0 Red-White — white keyboard with Cherry-red accent keys
+     */
+    val CherryRedWhite = Theme.Builtin(
+        name = "CHERRY 红白",
+        isDark = false,
+        backgroundColor = 0xffF2F2F2,
+        barColor = 0xffEBEBEB,
+        keyboardColor = 0xffF7F7F7,
+        keyBackgroundColor = 0xffFFFFFF,
+        keyTextColor = 0xff222222,
+        candidateTextColor = 0xff222222,
+        candidateLabelColor = 0xff222222,
+        candidateCommentColor = 0xff6E6E6E,
+        altKeyBackgroundColor = 0xffE3E3E3,
+        altKeyTextColor = 0xff6E6E6E,
+        accentKeyBackgroundColor = 0xffE41B23,
+        accentKeyTextColor = 0xffFFFFFF,
+        keyPressHighlightColor = 0x1f000000,
+        keyShadowColor = 0xffCCCCCC,
+        popupBackgroundColor = 0xffEBEBEB,
+        popupTextColor = 0xff222222,
+        spaceBarColor = 0xffE8E8E8,
+        dividerColor = 0x1f000000,
+        clipboardEntryColor = 0xffFFFFFF,
+        genericActiveBackgroundColor = 0xffE41B23,
+        genericActiveForegroundColor = 0xffFFFFFF
+    )
+
+    /**
+     * CHERRY MX Board 9.0 — dark gamer keyboard with red accents
+     */
+    val CherryMX9 = Theme.Builtin(
+        name = "CHERRY MX 9.0",
+        isDark = true,
+        backgroundColor = 0xff1C1C1C,
+        barColor = 0xff252525,
+        keyboardColor = 0xff1C1C1C,
+        keyBackgroundColor = 0xff333333,
+        keyTextColor = 0xffE0E0E0,
+        candidateTextColor = 0xffE0E0E0,
+        candidateLabelColor = 0xffE0E0E0,
+        candidateCommentColor = 0xff999999,
+        altKeyBackgroundColor = 0xff2A2A2A,
+        altKeyTextColor = 0xff999999,
+        accentKeyBackgroundColor = 0xffE41B23,
+        accentKeyTextColor = 0xffFFFFFF,
+        keyPressHighlightColor = 0x33ffffff,
+        keyShadowColor = 0xff0A0A0A,
+        popupBackgroundColor = 0xff2A2A2A,
+        popupTextColor = 0xffE0E0E0,
+        spaceBarColor = 0xff404040,
+        dividerColor = 0x1fffffff,
+        clipboardEntryColor = 0xff333333,
+        genericActiveBackgroundColor = 0xffE41B23,
+        genericActiveForegroundColor = 0xffFFFFFF
+    )
+
+    /**
+     * CHERRY Classic Black — retro black mechanical keyboard
+     */
+    val CherryClassicBlack = Theme.Builtin(
+        name = "CHERRY 经典黑",
+        isDark = true,
+        backgroundColor = 0xff1A1A1A,
+        barColor = 0xff222222,
+        keyboardColor = 0xff1A1A1A,
+        keyBackgroundColor = 0xff2D2D2D,
+        keyTextColor = 0xffD4D4D4,
+        candidateTextColor = 0xffD4D4D4,
+        candidateLabelColor = 0xffD4D4D4,
+        candidateCommentColor = 0xff8A8A8A,
+        altKeyBackgroundColor = 0xff252525,
+        altKeyTextColor = 0xff8A8A8A,
+        accentKeyBackgroundColor = 0xff8B0000,
+        accentKeyTextColor = 0xffFFFFFF,
+        keyPressHighlightColor = 0x33ffffff,
+        keyShadowColor = 0xff000000,
+        popupBackgroundColor = 0xff252525,
+        popupTextColor = 0xffD4D4D4,
+        spaceBarColor = 0xff383838,
+        dividerColor = 0x1fffffff,
+        clipboardEntryColor = 0xff2D2D2D,
+        genericActiveBackgroundColor = 0xff8B0000,
+        genericActiveForegroundColor = 0xffFFFFFF
+    )
+
 }

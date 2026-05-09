@@ -1,0 +1,7 @@
+# Rime default configuration for Suretype 14-key
+# Registers the schema so it appears in the input method selector.
+
+patch:
+  schema_list:
+    - schema: suretype_14key
+    - schema: luna_pinyin

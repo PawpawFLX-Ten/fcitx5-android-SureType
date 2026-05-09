@@ -1,6 +1,7 @@
 /*
  * SPDX-License-Identifier: LGPL-2.1-or-later
  * SPDX-FileCopyrightText: Copyright 2021-2023 Fcitx5 for Android Contributors
+ * Suretype layout additions (c) 2025 WhiteFrost
  */
 package org.fcitx.fcitx5.android.input.keyboard
 
@@ -15,6 +16,7 @@ import org.fcitx.fcitx5.android.R
 import org.fcitx.fcitx5.android.core.CapabilityFlags
 import org.fcitx.fcitx5.android.core.InputMethodEntry
 import org.fcitx.fcitx5.android.data.prefs.AppPrefs
+import org.fcitx.fcitx5.android.data.prefs.ManagedPreference
 import org.fcitx.fcitx5.android.input.bar.KawaiiBarComponent
 import org.fcitx.fcitx5.android.input.broadcast.InputBroadcastReceiver
 import org.fcitx.fcitx5.android.input.broadcast.ReturnKeyDrawableComponent
@@ -45,7 +47,9 @@ class KeyboardWindow : InputWindow.SimpleInputWindow<KeyboardWindow>(), Essentia
     private val bar: KawaiiBarComponent by manager.must()
     private val returnKeyDrawable: ReturnKeyDrawableComponent by manager.must()
 
-    companion object : EssentialWindow.Key
+    companion object : EssentialWindow.Key {
+        const val TOGGLE_LAYOUT = "__toggle__"
+    }
 
     override val key: EssentialWindow.Key
         get() = KeyboardWindow
@@ -68,17 +72,33 @@ class KeyboardWindow : InputWindow.SimpleInputWindow<KeyboardWindow>(), Essentia
     private val keyboards: HashMap<String, BaseKeyboard> by lazy {
         hashMapOf(
             TextKeyboard.Name to TextKeyboard(context, theme),
+            SuretypeKeyboard.Name to SuretypeKeyboard(context, theme),
             NumberKeyboard.Name to NumberKeyboard(context, theme)
         )
     }
     private var currentKeyboardName = ""
     private var lastSymbolType: String by AppPrefs.getInstance().internal.lastSymbolLayout
+    // Track the last alphabet keyboard so "ABC" returns to the right one (Suretype or Text)
+    private var lastAlphabetKeyboard = SuretypeKeyboard.Name
+    // Keyboard names that are considered "alphabet" (not number/symbol/picker)
+    private val alphabetKeyboards = setOf(SuretypeKeyboard.Name, TextKeyboard.Name)
 
     private val currentKeyboard: BaseKeyboard? get() = keyboards[currentKeyboardName]
 
     private val keyActionListener = KeyActionListener { it, source ->
         if (it is KeyAction.LayoutSwitchAction) {
-            switchLayout(it.act)
+            val target = when {
+                it.act == TOGGLE_LAYOUT -> {
+                    if (currentKeyboardName == SuretypeKeyboard.Name) TextKeyboard.Name
+                    else SuretypeKeyboard.Name
+                }
+                // When switching TO an alphabet keyboard from a non-alphabet one,
+                // return to the last alphabet keyboard the user was on
+                it.act == TextKeyboard.Name && currentKeyboardName !in alphabetKeyboards -> lastAlphabetKeyboard
+                it.act == SuretypeKeyboard.Name && currentKeyboardName !in alphabetKeyboards -> lastAlphabetKeyboard
+                else -> it.act
+            }
+            switchLayout(target)
         } else {
             commonKeyActionListener.listener.onKeyAction(it, source)
         }
@@ -88,10 +108,32 @@ class KeyboardWindow : InputWindow.SimpleInputWindow<KeyboardWindow>(), Essentia
         popup.listener
     }
 
+    // Default keyboard layout from preferences
+    private val defaultLayoutPref = AppPrefs.getInstance().keyboard.defaultKeyboardLayout
+
+    @androidx.annotation.Keep
+    private val onDefaultLayoutChanged = ManagedPreference.OnChangeListener<DefaultKeyboardLayout> { _, layout ->
+        val target = when (layout) {
+            DefaultKeyboardLayout.Suretype -> SuretypeKeyboard.Name
+            DefaultKeyboardLayout.Text -> TextKeyboard.Name
+        }
+        if (target != currentKeyboardName) {
+            switchLayout(target, remember = false)
+        }
+    }
+
     // This will be called EXACTLY ONCE
     override fun onCreateView(): View {
         keyboardView = context.frameLayout(R.id.keyboard_view)
-        attachLayout(TextKeyboard.Name)
+
+        // Register preference change listener
+        defaultLayoutPref.registerOnChangeListener(onDefaultLayoutChanged)
+
+        val initialLayout = when (defaultLayoutPref.getValue()) {
+            DefaultKeyboardLayout.Suretype -> SuretypeKeyboard.Name
+            DefaultKeyboardLayout.Text -> TextKeyboard.Name
+        }
+        attachLayout(initialLayout)
         return keyboardView
     }
 
@@ -106,6 +148,10 @@ class KeyboardWindow : InputWindow.SimpleInputWindow<KeyboardWindow>(), Essentia
 
     private fun attachLayout(target: String) {
         currentKeyboardName = target
+        // Remember the last alphabet keyboard for "ABC" return key
+        if (target in alphabetKeyboards) {
+            lastAlphabetKeyboard = target
+        }
         currentKeyboard?.let {
             it.keyActionListener = keyActionListener
             it.popupActionListener = popupActionListener
@@ -120,7 +166,7 @@ class KeyboardWindow : InputWindow.SimpleInputWindow<KeyboardWindow>(), Essentia
         val target = to.ifEmpty { lastSymbolType }
         ContextCompat.getMainExecutor(service).execute {
             if (keyboards.containsKey(target)) {
-                if (remember && target != TextKeyboard.Name) {
+                if (remember && target != TextKeyboard.Name && target != SuretypeKeyboard.Name) {
                     lastSymbolType = target
                 }
                 if (target == currentKeyboardName) return@execute
@@ -142,7 +188,10 @@ class KeyboardWindow : InputWindow.SimpleInputWindow<KeyboardWindow>(), Essentia
         val targetLayout = when (info.inputType and InputType.TYPE_MASK_CLASS) {
             InputType.TYPE_CLASS_NUMBER -> NumberKeyboard.Name
             InputType.TYPE_CLASS_PHONE -> NumberKeyboard.Name
-            else -> TextKeyboard.Name
+            else -> when (defaultLayoutPref.getValue()) {
+                DefaultKeyboardLayout.Suretype -> SuretypeKeyboard.Name
+                DefaultKeyboardLayout.Text -> TextKeyboard.Name
+            }
         }
         switchLayout(targetLayout, remember = false)
     }

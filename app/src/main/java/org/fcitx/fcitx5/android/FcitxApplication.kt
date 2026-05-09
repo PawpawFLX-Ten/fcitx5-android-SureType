@@ -21,6 +21,7 @@ import kotlinx.coroutines.plus
 import org.fcitx.fcitx5.android.daemon.FcitxDaemon
 import org.fcitx.fcitx5.android.data.clipboard.ClipboardManager
 import org.fcitx.fcitx5.android.data.prefs.AppPrefs
+import org.fcitx.fcitx5.android.data.RimeDeployer
 import org.fcitx.fcitx5.android.data.theme.ThemeManager
 import org.fcitx.fcitx5.android.ui.main.LogActivity
 import org.fcitx.fcitx5.android.utils.AppUtil
@@ -136,6 +137,8 @@ class FcitxApplication : Application() {
         ClipboardManager.init(ctx)
         ThemeManager.init(resources.configuration)
         Locales.onLocaleChange(resources.configuration)
+        // Deploy Suretype Rime schema files to Rime user data directory
+        RimeDeployer.ensureDeployed(ctx)
         registerReceiver(shutdownReceiver, IntentFilter(Intent.ACTION_SHUTDOWN))
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N && !isDirectBootMode) {
             AppPrefs.getInstance().syncToDeviceEncryptedStorage()

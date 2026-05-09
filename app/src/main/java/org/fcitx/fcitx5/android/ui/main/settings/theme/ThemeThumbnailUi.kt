@@ -13,6 +13,7 @@ import android.os.Build
 import android.view.View
 import android.view.ViewOutlineProvider
 import android.widget.ImageView
+import android.widget.TextView
 import androidx.core.view.isVisible
 import org.fcitx.fcitx5.android.R
 import org.fcitx.fcitx5.android.data.theme.Theme
@@ -67,6 +68,12 @@ class ThemeThumbnailUi(override val ctx: Context) : Ui {
         imageResource = R.drawable.ic_baseline_auto_awesome_24
     }
 
+    val nameLabel = view(::TextView) {
+        setPaddingDp(6, 4, 6, 4)
+        textSize = 12f
+        maxLines = 1
+    }
+
     override val root = constraintLayout {
         outlineProvider = ViewOutlineProvider.BOUNDS
         elevation = dp(2f)
@@ -92,6 +99,9 @@ class ThemeThumbnailUi(override val ctx: Context) : Ui {
             topOfParent()
             startOfParent()
         })
+        add(nameLabel, lParams(matchParent, dp(24)) {
+            bottomOfParent()
+        })
     }
 
     fun setTheme(theme: Theme) {
@@ -109,6 +119,13 @@ class ThemeThumbnailUi(override val ctx: Context) : Ui {
             paint.color = theme.accentKeyBackgroundColor
         }
         val foregroundTint = ColorStateList.valueOf(theme.altKeyTextColor)
+        // Theme name label
+        nameLabel.text = theme.name
+        nameLabel.setTextColor(theme.altKeyTextColor)
+        nameLabel.background = GradientDrawable().apply {
+            setColor(theme.barColor)
+            setAlpha(200)
+        }
         editButton.apply {
             visibility = if (theme is Theme.Custom) View.VISIBLE else View.GONE
             background = rippleDrawable(theme.keyPressHighlightColor)
