@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name_debug">大肥肠偷人法 (中州韵插件 | 调试)</string>
+    <string name="app_name_release">大肥肠偷人法 (中州韵插件)</string>
+    <string name="description">RIME (中州韵输入法引擎) 支持</string>
+</resources>

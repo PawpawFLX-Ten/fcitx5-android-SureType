@@ -1,0 +1,113 @@
+# Rime schema
+# encoding: utf-8
+#
+# 白霜九键 — fcitx5-android 适配版
+# 原版适配仓输入法 Hamster，此版本移除 t9_processor（Hamster 专用），
+# 使用标准 Rime 组件，适用于 fcitx5-android。
+#
+# 通过 derive 规则将字母映射为九宫格数字（2-9），利用白霜词库进行消歧。
+
+__include: rime_frost.schema.yaml:/
+
+schema:
+  schema_id: rime_frost_t9
+  name: 白霜九键
+  version: "2026-05-12"
+  author:
+    - Dvel (original)
+    - WhiteFrost (fcitx5-android adaptation)
+  description: |
+    白霜九键
+    通过 derive 规则将数字输入映射为全拼编码，利用白霜词库进行消歧。
+  dependencies: []
+
+# Simplified engine for fcitx5-android — removes t9_processor (Hamster-specific)
+# and melt_eng_t9 (English sub-translator, optional for T9).
+engine:
+  processors:
+    - lua_processor@*select_character
+    - ascii_composer
+    - recognizer
+    - key_binder
+    - speller
+    - punctuator
+    - selector
+    - navigator
+    - express_editor
+  segmentors:
+    - ascii_segmentor
+    - matcher
+    - abc_segmentor
+    - punct_segmentor
+    - fallback_segmentor
+  translators:
+    - punct_translator
+    - script_translator
+    - lua_translator@*date_translator
+    - table_translator@custom_phrase
+    - lua_translator@*force_gc
+  filters:
+    - lua_filter@*is_in_user_dict
+    - lua_filter@*corrector
+    - simplifier@emoji
+    - simplifier@traditionalize
+    - uniquifier
+
+# Explicit translator block (do not rely on shallow YAML merge): PinyinBar groups candidates by
+# comment text — needs spelling_hints + keep_comments + comment_format like rime_frost_suretype.
+translator:
+  dictionary: rime_frost
+  prism: rime_frost_t9
+  spelling_hints: 50
+  always_show_comments: true
+  keep_comments: true
+  comment_format:
+    - xform/^/［/
+    - xform/$/］/
+
+# 自定义短语
+custom_phrase:
+  dictionary: ""
+  user_dict: custom_phrase_t9
+  db_class: stabledb
+  enable_completion: false
+  enable_sentence: false
+  initial_quality: 99
+
+# 九宫格 1 键上的符号序列
+punctuator:
+  half_shape:
+    "1": [1, "@", ".", "/", ":", "_", "-", "#"]
+    "@": [1, "@", "！", "：", "、", "……", "～"]
+    "#": [0, "#", "$", "%", "^", "&", "*", "(", ")"]
+
+# 输入时按 1 可以分词
+key_binder:
+  bindings:
+    - { when: has_menu, accept: 1, send: apostrophe }
+
+speller:
+  alphabet: zyxwvutsrqponmlkjihgfedcbaZYXWVUTSRQPONMLKJIHGFEDCBA9876543210=
+  initials: zyxwvutsrqponmlkjihgfedcbaZYXWVUTSRQPONMLKJIHGFEDCBA9876543210=
+  algebra:
+    - abbrev/^([a-z]).+$/$1/
+    - abbrev/^([zcs]h).+$/$1/
+    - derive/^([nl])ve$/$1ue/
+    - derive/^([jqxy])u/$1v/
+    - derive/un$/uen/
+    - derive/ui$/uei/
+    - derive/iu$/iou/
+    - derive/([aeiou])ng$/$1gn/
+    - derive/([dtngkhrzcs])o(u|ng)$/$1o/
+    - derive/ong$/on/
+    - derive/ao$/oa/
+    - derive/([iu])a(o|ng?)$/a$1$2/
+    # 九宫格数字映射
+    - derive/[abc]/2/
+    - derive/[def]/3/
+    - derive/[hgi]/4/
+    - derive/[jkl]/5/
+    - derive/[omn]/6/
+    - derive/[pqrs]/7/
+    - derive/[tuv]/8/
+    - derive/[wxyz]/9/

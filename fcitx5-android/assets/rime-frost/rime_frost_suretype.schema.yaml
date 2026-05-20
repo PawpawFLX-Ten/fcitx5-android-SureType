@@ -1,0 +1,77 @@
+# Rime schema
+# encoding: utf-8
+#
+# 白霜双键 — Suretype 14-key disambiguation via xlit algebra
+# Inherits from rime_frost (白霜拼音), reusing all dictionaries, translators, and filters.
+# Adds speller/algebra xlit rule to map 26-key input to 14 canonical positions.
+
+__include: rime_frost.schema.yaml:/
+
+schema:
+  schema_id: rime_frost_suretype
+  name: 白霜双键
+  version: "2026-05-11"
+  author:
+    - WhiteFrost (based on rime-frost by Dvel & gaboolic)
+  description: |
+    白霜拼音 14键双键布局，适配 Suretype 键盘。
+    通过 xlit 拼写运算将双键输入映射为全拼编码，利用白霜词库进行消歧。
+  dependencies: []
+
+# Override speller: inherit all rime_frost corrective/abbrev rules, append xlit
+speller:
+  alphabet: zyxwvutsrqponmlkjihgfedcbaZYXWVUTSRQPONMLKJIHGFEDCBA
+  initials: zyxwvutsrqponmlkjihgfedcbaZYXWVUTSRQPONMLKJIHGFEDCBA
+  delimiter: " '"
+  algebra:
+    - abbrev/^([a-z]).+$/$1/
+    - abbrev/^([zcs]h).+$/$1/
+    - xlit/qwertyuiopasdfghjklzxcvbnm/qqeettuuooaaddggjjlzzccbbm/
+    - xlit/QWERTYUIOPASDFGHJKLZXCVBNM/QQEETTUUOOAADDGGJJLZZCCBBM/
+
+translator:
+  dictionary: rime_frost
+  prism: rime_frost_suretype
+  spelling_hints: 50
+  always_show_comments: true
+  keep_comments: true
+  comment_format:
+    - xform/^/［/
+    - xform/$/］/
+
+# Simplified engine for xlit — removes melt_eng (English translator) and
+# Lua filters that compare context.input against 26-letter QWERTY patterns.
+# Inheriting the full rime_frost engine would cause melt_eng English candidates
+# to outrank Chinese candidates under xlit's 14-letter alphabet.
+engine:
+  processors:
+    - lua_processor@*select_character
+    - ascii_composer
+    - recognizer
+    - key_binder
+    - speller
+    - punctuator
+    - selector
+    - navigator
+    - express_editor
+  segmentors:
+    - ascii_segmentor
+    - matcher
+    - abc_segmentor
+    - punct_segmentor
+    - fallback_segmentor
+  translators:
+    - punct_translator
+    - script_translator
+    - lua_translator@*date_translator
+    - table_translator@custom_phrase
+    - lua_translator@*number_translator
+    - lua_translator@*force_gc
+  filters:
+    - lua_filter@*is_in_user_dict
+    - lua_filter@*corrector
+    - lua_filter@*cn_en_spacer
+    - lua_filter@*en_spacer
+    - simplifier@emoji
+    - simplifier@traditionalize
+    - uniquifier
