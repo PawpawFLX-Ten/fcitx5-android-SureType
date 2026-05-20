@@ -43,6 +43,7 @@
 11. 在菜单第二行第一个图表中可以切换按键布局和输入方式（图有误，没有英文模式）
 <img width="1080" height="1482" alt="21e8a6d58b037726db09dc0b2310f8b0" src="https://github.com/user-attachments/assets/f4a91ea1-b929-44fa-8705-8ac1b9deb272" />
 12. Suffer from 大肥肠偷人法！
+<img width="1080" height="1205" alt="ad08a224c7263ce289337c5290b0d57d" src="https://github.com/user-attachments/assets/9f26c24c-3a6a-4d24-a701-de2099f51be5" />
 
 
 ## 从源码构建
