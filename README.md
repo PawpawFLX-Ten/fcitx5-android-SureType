@@ -1,12 +1,19 @@
 # 大肥肠偷人法 (HandJump) 中文拼音输入方案
 
-本输入法适用于注重隐私、具备安卓思维的用户。开发基于 小企鹅输入法 [fcitx5-android](https://github.com/fcitx5-android/fcitx5-android) 与 [rime-frost（白霜拼音）](https://github.com/gaboolic/rime-frost) ，支持 **Qwerty全拼 / Suretype双键 / 九键** 三种 Rime 方案。针对小企鹅输入法的设计，主要添加了拼音分词器帮助用户筛选选项。
+本输入法适用于注重隐私、想要使用拼音输入法，且具备安卓思维的用户。支持 **Qwerty全拼 / Suretype双键 / 九键** 三种 Rime 方案。针对小企鹅输入法的设计，主要添加了拼音分词器帮助用户筛选选项。
+
+
+开发基于 小企鹅输入法 [fcitx5-android](https://github.com/fcitx5-android/fcitx5-android) 与 [rime-frost（白霜拼音）](https://github.com/gaboolic/rime-frost) 。
 
 目前还存在一些毛刺，计划后续进行更新和维修，主要问题包括：
     1. 针对按键滑动点选的支持还不完善
+    
     2. 针对suretype布局和T9的xlit按键映射方案还没有实装——目前是直接裸入输入管道
+    
     3. 按键逻辑还需要优化
+    
     4. 可能存在其它潜在的稳定性问题，目前还没有足够多的实测能够支持观察
+    
 
 开发纯粹基于VibeCoding，主力为OpenCode+DeepSeek V4 Pro和Cursor。如果没有AI恶意植入，应该不会涉及到泄露隐私的问题。
 
@@ -18,9 +25,8 @@
 ├── ARCHITECTURE.md           # 架构与构建说明（必读）
 ├── fcitx5-android/          # Android 主工程 + Rime 插件 + HandJump 定制 UI
 ├── rime-frost/               # 白霜拼音词典与方案（构建时由 CMake 安装）
-└── releases/                 # 预编译 arm64 release APK（可直接安装）
-    ├── HandJump-main-arm64-release.apk
-    └── HandJump-rime-arm64-release.apk
+├── HandJump-main-arm64-release.apk
+└── HandJump-rime-arm64-release.apk
 ```
 
 ## 快速安装（无需自行编译）
