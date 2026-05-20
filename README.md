@@ -55,6 +55,11 @@
 | Android 壳 | https://github.com/fcitx5-android/fcitx5-android |
 | 拼音方案/词库 | https://github.com/gaboolic/rime-frost |
 
+其它参考学习内容：
+万象输入法：    https://github.com/amzxyz/rime_wanxiang
+四叶草方案：    github.com/forfudan/rime-clover-flypy
+同文输入法：    好像没找着
+
 本人第一次基于github生态使用和分发开源项目，如有操作不规范之处，还请海涵并指出。
 
 主工程许可见 `fcitx5-android/LICENSE`。发布 APK 仅供体验；二次分发或修改请遵守各上游许可证。
